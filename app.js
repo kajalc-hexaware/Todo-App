@@ -1,18 +1,34 @@
-const express = require('express')
-const mongoose = require('mongoose')
-const url = 'mongodb://localhost/TodoDB'
-const app = express()
-mongoose.connect(url, {useNewUrlParser:true}) 
-const con = mongoose.connection
+const express=require('express')
+const app=express()
+const noteRouter=require('./routes/notes')
+const swaggerJsDocs=require('swagger-jsdoc')
+const swaggerUI=require('swagger-ui-express')
+//const router = require('./routes/animals')
+require('./db/mongoose')
 
-con.on('open', () => {
-    console.log('connected...')
-})
 app.use(express.json())
+app.use(noteRouter)
 
-const noteRouter = require('./routes/notes')
-app.use('/notes',noteRouter)
+const swaggerOptions={
+    definition: {
+        openapi:'3.0.0',
+        info:{
+            title:'TODO APP',
+            version:'1.0.0',
+          //  servers:["http://localhost:3000"]
+        }
 
-app.listen(9000, () => {
-    console.log('Server started')
+    },
+    apis:["./routes/notes.js"]
+}
+
+const swaggerDocs=swaggerJsDocs(swaggerOptions)
+console.log(swaggerDocs)
+app.use('/api-docs',swaggerUI.serve,swaggerUI.setup(swaggerDocs))
+
+
+const port=process.env.PORT || 3000
+
+app.listen(port,()=>{
+    console.log(`Server is on port ${port}`)
 })
